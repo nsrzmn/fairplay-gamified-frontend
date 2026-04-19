@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Bell,
-  Database,
-  Shield,
-  Trash2,
-  Save,
-} from "lucide-react";
+import { Bell, Database, Shield, Trash2, Save } from "lucide-react";
 import { Switch } from "./ui/switch";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -21,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { toast } from "sonner@2.0.3";
 import { apiClient } from "../services/api";
-
 
 interface SettingsPayload {
   latency: number;
@@ -162,10 +155,18 @@ export function Settings() {
 
       <Tabs defaultValue="monitoring" className="w-full">
         <TabsList className="w-full bg-white/5 p-1 h-auto">
-          <TabsTrigger value="monitoring" className="flex-1">Monitoring</TabsTrigger>
-          <TabsTrigger value="fairness" className="flex-1">Fairness</TabsTrigger>
-          <TabsTrigger value="notifications" className="flex-1">Notifications</TabsTrigger>
-          <TabsTrigger value="data" className="flex-1">Data</TabsTrigger>
+          <TabsTrigger value="monitoring" className="flex-1">
+            Monitoring
+          </TabsTrigger>
+          <TabsTrigger value="fairness" className="flex-1">
+            Fairness
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex-1">
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger value="data" className="flex-1">
+            Data
+          </TabsTrigger>
         </TabsList>
 
         {/* Monitoring Settings */}
@@ -376,24 +377,24 @@ export function Settings() {
                       cannot be undone.
                     </p>
                     <div className="flex flex-col gap-3">
-                    <Button
-                      onClick={handleDeleteData}
-                      disabled={isDeletingData || isSeedingData}
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {isDeletingData ? "Deleting..." : "Delete All Data"}
-                    </Button>
-                    <Button
-                      onClick={handleSeedData}
-                      disabled={isDeletingData || isSeedingData}
-                      className="bg-primary hover:bg-primary/90 text-white"
-                    >
-                      <Database className="w-4 h-4 mr-2" />
-                      {isSeedingData
-                        ? "Seeding..."
-                        : "Populate Realistic Dummy Data"}
-                    </Button>
+                      <Button
+                        onClick={handleDeleteData}
+                        disabled={isDeletingData || isSeedingData}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {isDeletingData ? "Deleting..." : "Delete All Data"}
+                      </Button>
+                      <Button
+                        onClick={handleSeedData}
+                        disabled={isDeletingData || isSeedingData}
+                        className="bg-primary hover:bg-primary/90 text-white"
+                      >
+                        <Database className="w-4 h-4 mr-2" />
+                        {isSeedingData
+                          ? "Seeding..."
+                          : "Populate Realistic Dummy Data"}
+                      </Button>
                     </div>
                   </div>
                 </div>
