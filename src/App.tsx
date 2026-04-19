@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { FeaturedBanner } from "./components/FeaturedBanner";
 import { QuickStats } from "./components/QuickStats";
@@ -21,36 +21,120 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./components/ui/popover";
+import { apiClient } from "./services/api";
+
+type SessionStatus = "active" | "completed" | "flagged";
+
+interface SessionRow {
+  id: string;
+  player: string;
+  status: SessionStatus;
+  latency: number;
+  accuracy: number;
+  score: number;
+  fairnessScore: number;
+  startTime: string;
+  inputTiming: number;
+  emptyClick: number;
+  missedTarget: number;
+}
+
+interface LiveEvent {
+  id: string;
+  timestamp: string;
+  player: string;
+  event: string;
+  severity: "info" | "warning" | "critical";
+}
+
+interface FairnessMetric {
+  name: string;
+  score: number;
+  status: "excellent" | "good" | "warning" | "critical";
+  description: string;
+}
+
+interface CoreStats {
+  score: number;
+  accuracy: number;
+  reactionTime: number;
+  targetsHit: number;
+  targetsMissed: number;
+  emptyClicks: number;
+}
+
+interface SessionCoreStatsResponse {
+  stats: CoreStats;
+  previousStats?: CoreStats | null;
+}
+
+interface SessionFairnessResponse {
+  overallScore: number;
+  metrics: FairnessMetric[];
+}
+
+interface DashboardOverviewResponse {
+  activePlayers: number;
+  avgLatency: number;
+  fairnessScore: number;
+  avgAccuracy: number;
+}
+
+function formatStartTime(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatEventTime(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleTimeString([], { hour12: false });
+}
+
+function normalizeSession(row: any): SessionRow {
+  return {
+    id: row.id,
+    player: row.player,
+    status: row.status,
+    latency: Number(row.latency ?? 0),
+    accuracy: Number(row.accuracy ?? 0),
+    score: Number(row.score ?? 0),
+    fairnessScore: Number(row.fairnessScore ?? 0),
+    startTime: formatStartTime(String(row.startTime ?? "")),
+    inputTiming: Number(row.inputTiming ?? 0),
+    emptyClick: row.emptyClick ?? 0,
+    missedTarget: row.missedTarget ?? 0,
+  };
+}
 
 function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stats, setStats] = useState({
-    activePlayers: 12,
-    avgLatency: 45,
-    fairnessScore: 94,
-    avgAccuracy: 87.5,
+    activePlayers: 0,
+    avgLatency: 0,
+    fairnessScore: 0,
+    avgAccuracy: 0,
   });
 
   // Core Performance Stats
   const [corePerformanceStats, setCorePerformanceStats] = useState({
-    score: 8750,
-    accuracy: 89.5,
-    reactionTime: 245,
-    targetsHit: 48,
-    targetsMissed: 3,
-    emptyClicks: 2,
+    score: 0,
+    accuracy: 0,
+    reactionTime: 0,
+    targetsHit: 0,
+    targetsMissed: 0,
+    emptyClicks: 0,
   });
 
-  const [previousPerformanceStats] = useState({
-    score: 8200,
-    accuracy: 87.2,
-    reactionTime: 268,
-    targetsHit: 45,
-    targetsMissed: 5,
-    emptyClicks: 4,
-  });
+  const [previousPerformanceStats, setPreviousPerformanceStats] =
+    useState<CoreStats | undefined>(undefined);
 
   // Mock data for charts
   const [latencyData, setLatencyData] = useState([
@@ -82,256 +166,104 @@ function App() {
     { player: "Player6", score: 8200, avgScore: 7500 },
   ];
 
-  const [sessions, setSessions] = useState([
-    {
-      id: "1",
-      player: "ProGamer123",
-      status: "active" as const,
-      latency: 42,
-      accuracy: 91,
-      score: 8500,
-      fairnessScore: 95,
-      startTime: "10:30 AM",
-      inputTiming: 245, // Normal human reflex time
-      emptyClick: 1,
-      missedTarget: 2,
-    },
-    {
-      id: "2",
-      player: "SkillMaster",
-      status: "active" as const,
-      latency: 48,
-      accuracy: 88,
-      score: 7200,
-      fairnessScore: 92,
-      startTime: "10:35 AM",
-      inputTiming: 312,
-      emptyClick: 0,
-      missedTarget: 1,
-    },
-    {
-      id: "3",
-      player: "ElitePlayer",
-      status: "flagged" as const,
-      latency: 125,
-      accuracy: 78,
-      score: 9100,
-      fairnessScore: 68,
-      startTime: "10:40 AM",
-      inputTiming: 98, // Suspiciously fast - possible bot
-      emptyClick: 8, // High empty clicks
-      missedTarget: 0,
-    },
-    {
-      id: "4",
-      player: "CasualGamer",
-      status: "active" as const,
-      latency: 51,
-      accuracy: 84,
-      score: 6800,
-      fairnessScore: 88,
-      startTime: "10:42 AM",
-      inputTiming: 385,
-      emptyClick: 3,
-      missedTarget: 4,
-    },
-    {
-      id: "5",
-      player: "CompPlayer99",
-      status: "completed" as const,
-      latency: 39,
-      accuracy: 93,
-      score: 7900,
-      fairnessScore: 97,
-      startTime: "10:25 AM",
-      inputTiming: 267,
-      emptyClick: 0,
-      missedTarget: 1,
-    },
-  ]);
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
 
-  const fairnessMetrics = [
-    {
-      name: "Input Timing Consistency",
-      score: 96,
-      status: "excellent" as const,
-      description: "Player input patterns show natural human variation",
-    },
-    {
-      name: "Response Time Distribution",
-      score: 92,
-      status: "excellent" as const,
-      description: "Response times fall within expected ranges",
-    },
-    {
-      name: "Score Progression Rate",
-      score: 88,
-      status: "good" as const,
-      description: "Score increases align with skill-based progression",
-    },
-    {
-      name: "Network Stability",
-      score: 75,
-      status: "warning" as const,
-      description: "Some players experiencing elevated latency spikes",
-    },
-  ];
+  const [fairnessMetrics, setFairnessMetrics] = useState<FairnessMetric[]>([]);
 
-  const [liveEvents, setLiveEvents] = useState([
-    {
-      id: "1",
-      timestamp: "11:32:15",
-      player: "ProGamer123",
-      event: "Achieved new high score",
-      severity: "info" as const,
-    },
-    {
-      id: "2",
-      timestamp: "11:32:08",
-      player: "ElitePlayer",
-      event: "Unusual latency spike detected (125ms)",
-      severity: "warning" as const,
-    },
-    {
-      id: "3",
-      timestamp: "11:31:55",
-      player: "SkillMaster",
-      event: "Perfect accuracy streak - 10 consecutive hits",
-      severity: "info" as const,
-    },
-    {
-      id: "4",
-      timestamp: "11:31:42",
-      player: "ElitePlayer",
-      event: "Fairness score dropped below threshold",
-      severity: "critical" as const,
-    },
-    {
-      id: "5",
-      timestamp: "11:31:30",
-      player: "CompPlayer99",
-      event: "Session completed successfully",
-      severity: "info" as const,
-    },
-  ]);
+  const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
+  const latestAlertTimestamp = useRef<string | null>(null);
 
-  // Simulate real-time updates
+  const loadSessionDetails = async (sessionId: string) => {
+    try {
+      const [core, fairness] = await Promise.all([
+        apiClient.get<SessionCoreStatsResponse>(`/sessions/${sessionId}/core-stats`),
+        apiClient.get<SessionFairnessResponse>(`/sessions/${sessionId}/fairness`),
+      ]);
+
+      setCorePerformanceStats(core.stats);
+      setPreviousPerformanceStats(core.previousStats ?? undefined);
+      setFairnessMetrics(fairness.metrics ?? []);
+      setStats((prev) => ({ ...prev, fairnessScore: fairness.overallScore ?? prev.fairnessScore }));
+    } catch {
+      setPreviousPerformanceStats(undefined);
+      setFairnessMetrics([]);
+    }
+  };
+
+  const loadOverviewAndSessions = async () => {
+    try {
+      const [overview, sessionsResponse] = await Promise.all([
+        apiClient.get<DashboardOverviewResponse>("/dashboard/overview"),
+        apiClient.get<any[]>("/sessions?limit=50"),
+      ]);
+
+      setStats(overview);
+      const normalizedSessions = sessionsResponse.map(normalizeSession);
+      setSessions(normalizedSessions);
+
+      if (normalizedSessions.length > 0) {
+        await loadSessionDetails(normalizedSessions[0].id);
+      }
+
+      setLatencyData((prev) =>
+        prev.map((row) => ({ ...row, latency: overview.avgLatency || row.latency })),
+      );
+      setAccuracyData((prev) =>
+        prev.map((row) => ({ ...row, accuracy: Number(overview.avgAccuracy) || row.accuracy })),
+      );
+    } catch {
+      // Keep UI responsive even when backend is not available.
+      setSessions([]);
+    }
+  };
+
+  const pollLiveAlerts = async () => {
+    const since = latestAlertTimestamp.current;
+    const query = since
+      ? `/live/alerts?since=${encodeURIComponent(since)}&limit=100`
+      : "/live/alerts?limit=100";
+    const alerts = await apiClient.get<any[]>(query);
+
+    if (!alerts.length) {
+      return;
+    }
+
+    const mapped: LiveEvent[] = alerts.map((alert) => ({
+      id: String(alert.id),
+      timestamp: formatEventTime(String(alert.timestamp)),
+      player: alert.player,
+      event: alert.event,
+      severity: alert.severity,
+    }));
+
+    setLiveEvents((prev) => {
+      const merged = [...mapped, ...prev];
+      const deduped = Array.from(new Map(merged.map((event) => [event.id, event])).values());
+      return deduped.slice(0, 100);
+    });
+
+    latestAlertTimestamp.current = String(alerts[0].timestamp);
+  };
+
   useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    void loadOverviewAndSessions();
     const interval = setInterval(() => {
-      setCurrentTime(new Date());
+      void loadOverviewAndSessions();
+    }, 10000);
 
-      // Update stats with random variations
-      setStats((prev: any) => ({
-        activePlayers: prev.activePlayers + Math.floor(Math.random() * 3) - 1,
-        avgLatency: Math.max(
-          30,
-          Math.min(60, prev.avgLatency + Math.floor(Math.random() * 6) - 3),
-        ),
-        fairnessScore: Math.max(
-          85,
-          Math.min(98, prev.fairnessScore + Math.floor(Math.random() * 3) - 1),
-        ),
-        avgAccuracy: Math.max(
-          80,
-          Math.min(95, prev.avgAccuracy + (Math.random() * 2 - 1)),
-        ),
-      }));
+    return () => clearInterval(interval);
+  }, []);
 
-      // Update core performance stats
-      setCorePerformanceStats((prev: any) => ({
-        score: prev.score + Math.floor(Math.random() * 150),
-        accuracy: Math.max(
-          75,
-          Math.min(95, prev.accuracy + (Math.random() * 4 - 2)),
-        ),
-        reactionTime: Math.max(
-          180,
-          Math.min(
-            350,
-            prev.reactionTime + Math.floor(Math.random() * 20 - 10),
-          ),
-        ),
-        targetsHit: prev.targetsHit + Math.floor(Math.random() * 3),
-        targetsMissed: Math.max(
-          0,
-          prev.targetsMissed + Math.floor(Math.random() * 2 - 0.5),
-        ),
-        emptyClicks: Math.max(
-          0,
-          prev.emptyClicks + Math.floor(Math.random() * 2 - 0.5),
-        ),
-      }));
-
-      // Add new latency data point
-      setLatencyData((prev: any) => {
-        const newData = [...prev.slice(1)];
-        newData.push({
-          time: new Date().toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          latency: 30 + Math.random() * 30,
-          threshold: 50,
-        });
-        return newData;
-      });
-
-      // Add new accuracy data point
-      setAccuracyData((prev: any) => {
-        const newData = [...prev.slice(1)];
-        newData.push({
-          time: new Date().toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          accuracy: 80 + Math.random() * 15,
-        });
-        return newData;
-      });
-
-      // Randomly update a session
-      setSessions((prev: any) => {
-        const updated = [...prev];
-        const randomIndex = Math.floor(Math.random() * updated.length);
-        if (updated[randomIndex]) {
-          updated[randomIndex] = {
-            ...updated[randomIndex],
-            latency: Math.floor(30 + Math.random() * 50),
-            accuracy: Math.floor(75 + Math.random() * 20),
-            score: updated[randomIndex].score + Math.floor(Math.random() * 100),
-          };
-        }
-        return updated;
-      });
-
-      // Add new event
-      const eventTypes = [
-        { event: "Score milestone reached", severity: "info" as const },
-        { event: "Perfect accuracy streak", severity: "info" as const },
-        {
-          event: "Minor latency fluctuation detected",
-          severity: "warning" as const,
-        },
-        { event: "Network connection stabilized", severity: "info" as const },
-      ];
-      const randomEvent =
-        eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      const players = [
-        "ProGamer123",
-        "SkillMaster",
-        "CasualGamer",
-        "CompPlayer99",
-      ];
-
-      setLiveEvents((prev: any) => {
-        const newEvent = {
-          id: Date.now().toString(),
-          timestamp: new Date().toLocaleTimeString("en-US", { hour12: false }),
-          player: players[Math.floor(Math.random() * players.length)],
-          ...randomEvent,
-        };
-        return [newEvent, ...prev.slice(0, 9)];
-      });
+  useEffect(() => {
+    void pollLiveAlerts();
+    const interval = setInterval(() => {
+      void pollLiveAlerts();
     }, 3000);
 
     return () => clearInterval(interval);

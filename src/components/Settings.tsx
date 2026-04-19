@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Globe, Moon, Sun, Database, Shield, Key, Download, Trash2, Save, User, Mail, Lock } from "lucide-react";
 import { Switch } from "./ui/switch";
 import { Input } from "./ui/input";
@@ -9,6 +9,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { toast } from "sonner@2.0.3";
+import { apiClient } from "../services/api";
+
+interface SettingsPayload {
+  latency: number;
+  fairnessScore: number;
+  reactionTime: number;
+  accuracyMin: number;
+  trackingInterval: number;
+  dataRetention: number;
+  notifications: Record<string, boolean>;
+}
+
+interface DataActionResponse {
+  ok: boolean;
+  message: string;
+  players: number;
+  sessions: number;
+  alerts: number;
+}
 
 export function Settings() {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -30,9 +49,49 @@ export function Settings() {
   const [dataRetention, setDataRetention] = useState("30");
   const [autoExport, setAutoExport] = useState(false);
   const [trackingInterval, setTrackingInterval] = useState("3");
+  const [isDeletingData, setIsDeletingData] = useState(false);
+  const [isSeedingData, setIsSeedingData] = useState(false);
 
-  const handleSave = () => {
-    toast.success("Settings saved successfully!");
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const payload = await apiClient.get<SettingsPayload>("/settings");
+        setThresholds({
+          latency: payload.latency,
+          fairnessScore: payload.fairnessScore,
+          reactionTime: payload.reactionTime,
+          accuracyMin: payload.accuracyMin,
+        });
+        setTrackingInterval(String(payload.trackingInterval));
+        setDataRetention(String(payload.dataRetention));
+        setNotifications((prev) => ({ ...prev, ...(payload.notifications || {}) }));
+      } catch {
+        toast.error("Unable to load settings from backend.");
+      }
+    };
+
+    void loadSettings();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const retentionDays = Number.isNaN(Number(dataRetention)) ? 365 : Number(dataRetention);
+      const intervalSeconds = Number.isNaN(Number(trackingInterval)) ? 3 : Number(trackingInterval);
+
+      await apiClient.put<SettingsPayload>("/settings", {
+        latency: thresholds.latency,
+        fairnessScore: thresholds.fairnessScore,
+        reactionTime: thresholds.reactionTime,
+        accuracyMin: thresholds.accuracyMin,
+        trackingInterval: intervalSeconds,
+        dataRetention: retentionDays,
+        notifications,
+      });
+
+      toast.success("Settings saved successfully!");
+    } catch {
+      toast.error("Failed to save settings.");
+    }
   };
 
   const handleExportData = () => {
@@ -40,7 +99,35 @@ export function Settings() {
   };
 
   const handleDeleteData = () => {
-    toast.error("Data deletion requires additional confirmation.");
+    setIsDeletingData(true);
+    apiClient
+      .post<DataActionResponse>("/settings/data/delete", {})
+      .then((res) => {
+        if (res.ok) {
+          toast.success(`${res.message} Sessions: ${res.sessions}, Players: ${res.players}`);
+        } else {
+          toast.error("Delete action failed.");
+        }
+      })
+      .catch(() => toast.error("Failed to delete gameplay data."))
+      .finally(() => setIsDeletingData(false));
+  };
+
+  const handleSeedData = () => {
+    setIsSeedingData(true);
+    apiClient
+      .post<DataActionResponse>("/settings/data/seed", {})
+      .then((res) => {
+        if (res.ok) {
+          toast.success(
+            `${res.message} Players: ${res.players}, Sessions: ${res.sessions}, Alerts: ${res.alerts}`,
+          );
+        } else {
+          toast.error("Seed action failed.");
+        }
+      })
+      .catch(() => toast.error("Failed to seed realistic dummy data."))
+      .finally(() => setIsSeedingData(false));
   };
 
   return (
@@ -425,10 +512,19 @@ export function Settings() {
                     </p>
                     <Button 
                       onClick={handleDeleteData}
+                      disabled={isDeletingData || isSeedingData}
                       className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete All Data
+                      {isDeletingData ? "Deleting..." : "Delete All Data"}
+                    </Button>
+                    <Button
+                      onClick={handleSeedData}
+                      disabled={isDeletingData || isSeedingData}
+                      className="bg-primary hover:bg-primary/90 text-white"
+                    >
+                      <Database className="w-4 h-4 mr-2" />
+                      {isSeedingData ? "Seeding..." : "Populate Realistic Dummy Data"}
                     </Button>
                   </div>
                 </div>
