@@ -133,8 +133,9 @@ function App() {
     emptyClicks: 0,
   });
 
-  const [previousPerformanceStats, setPreviousPerformanceStats] =
-    useState<CoreStats | undefined>(undefined);
+  const [previousPerformanceStats, setPreviousPerformanceStats] = useState<
+    CoreStats | undefined
+  >(undefined);
 
   // Mock data for charts
   const [latencyData, setLatencyData] = useState([
@@ -176,14 +177,21 @@ function App() {
   const loadSessionDetails = async (sessionId: string) => {
     try {
       const [core, fairness] = await Promise.all([
-        apiClient.get<SessionCoreStatsResponse>(`/sessions/${sessionId}/core-stats`),
-        apiClient.get<SessionFairnessResponse>(`/sessions/${sessionId}/fairness`),
+        apiClient.get<SessionCoreStatsResponse>(
+          `/sessions/${sessionId}/core-stats`,
+        ),
+        apiClient.get<SessionFairnessResponse>(
+          `/sessions/${sessionId}/fairness`,
+        ),
       ]);
 
       setCorePerformanceStats(core.stats);
       setPreviousPerformanceStats(core.previousStats ?? undefined);
       setFairnessMetrics(fairness.metrics ?? []);
-      setStats((prev) => ({ ...prev, fairnessScore: fairness.overallScore ?? prev.fairnessScore }));
+      setStats((prev) => ({
+        ...prev,
+        fairnessScore: fairness.overallScore ?? prev.fairnessScore,
+      }));
     } catch {
       setPreviousPerformanceStats(undefined);
       setFairnessMetrics([]);
@@ -206,10 +214,16 @@ function App() {
       }
 
       setLatencyData((prev) =>
-        prev.map((row) => ({ ...row, latency: overview.avgLatency || row.latency })),
+        prev.map((row) => ({
+          ...row,
+          latency: overview.avgLatency || row.latency,
+        })),
       );
       setAccuracyData((prev) =>
-        prev.map((row) => ({ ...row, accuracy: Number(overview.avgAccuracy) || row.accuracy })),
+        prev.map((row) => ({
+          ...row,
+          accuracy: Number(overview.avgAccuracy) || row.accuracy,
+        })),
       );
     } catch {
       // Keep UI responsive even when backend is not available.
@@ -238,7 +252,9 @@ function App() {
 
     setLiveEvents((prev) => {
       const merged = [...mapped, ...prev];
-      const deduped = Array.from(new Map(merged.map((event) => [event.id, event])).values());
+      const deduped = Array.from(
+        new Map(merged.map((event) => [event.id, event])).values(),
+      );
       return deduped.slice(0, 100);
     });
 

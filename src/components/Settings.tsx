@@ -1,11 +1,31 @@
 import { useEffect, useState } from "react";
-import { Bell, Globe, Moon, Sun, Database, Shield, Key, Download, Trash2, Save, User, Mail, Lock } from "lucide-react";
+import {
+  Bell,
+  Globe,
+  Moon,
+  Sun,
+  Database,
+  Shield,
+  Key,
+  Download,
+  Trash2,
+  Save,
+  User,
+  Mail,
+  Lock,
+} from "lucide-react";
 import { Switch } from "./ui/switch";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Slider } from "./ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { toast } from "sonner@2.0.3";
@@ -64,7 +84,10 @@ export function Settings() {
         });
         setTrackingInterval(String(payload.trackingInterval));
         setDataRetention(String(payload.dataRetention));
-        setNotifications((prev) => ({ ...prev, ...(payload.notifications || {}) }));
+        setNotifications((prev) => ({
+          ...prev,
+          ...(payload.notifications || {}),
+        }));
       } catch {
         toast.error("Unable to load settings from backend.");
       }
@@ -75,8 +98,12 @@ export function Settings() {
 
   const handleSave = async () => {
     try {
-      const retentionDays = Number.isNaN(Number(dataRetention)) ? 365 : Number(dataRetention);
-      const intervalSeconds = Number.isNaN(Number(trackingInterval)) ? 3 : Number(trackingInterval);
+      const retentionDays = Number.isNaN(Number(dataRetention))
+        ? 365
+        : Number(dataRetention);
+      const intervalSeconds = Number.isNaN(Number(trackingInterval))
+        ? 3
+        : Number(trackingInterval);
 
       await apiClient.put<SettingsPayload>("/settings", {
         latency: thresholds.latency,
@@ -95,7 +122,9 @@ export function Settings() {
   };
 
   const handleExportData = () => {
-    toast.success("Data export initiated. You'll receive a download link shortly.");
+    toast.success(
+      "Data export initiated. You'll receive a download link shortly.",
+    );
   };
 
   const handleDeleteData = () => {
@@ -104,7 +133,9 @@ export function Settings() {
       .post<DataActionResponse>("/settings/data/delete", {})
       .then((res) => {
         if (res.ok) {
-          toast.success(`${res.message} Sessions: ${res.sessions}, Players: ${res.players}`);
+          toast.success(
+            `${res.message} Sessions: ${res.sessions}, Players: ${res.players}`,
+          );
         } else {
           toast.error("Delete action failed.");
         }
@@ -135,7 +166,9 @@ export function Settings() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-3xl text-white">Settings</h2>
-          <p className="text-gray-400 mt-1">Manage your FairPlay Tracker preferences</p>
+          <p className="text-gray-400 mt-1">
+            Manage your FairPlay Tracker preferences
+          </p>
         </div>
         <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
           <Save className="w-4 h-4 mr-2" />
@@ -161,17 +194,25 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">Appearance</h3>
-                <p className="text-sm text-gray-400">Customize your dashboard experience</p>
+                <p className="text-sm text-gray-400">
+                  Customize your dashboard experience
+                </p>
               </div>
             </div>
 
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {isDarkMode ? <Moon className="w-5 h-5 text-gray-400" /> : <Sun className="w-5 h-5 text-gray-400" />}
+                  {isDarkMode ? (
+                    <Moon className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Sun className="w-5 h-5 text-gray-400" />
+                  )}
                   <div>
                     <Label className="text-white">Dark Mode</Label>
-                    <p className="text-sm text-gray-400">Enable dark theme for the dashboard</p>
+                    <p className="text-sm text-gray-400">
+                      Enable dark theme for the dashboard
+                    </p>
                   </div>
                 </div>
                 <Switch checked={isDarkMode} onCheckedChange={setIsDarkMode} />
@@ -201,10 +242,18 @@ export function Settings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="utc">UTC (Coordinated Universal Time)</SelectItem>
-                    <SelectItem value="est">EST (Eastern Standard Time)</SelectItem>
-                    <SelectItem value="cet">CET (Central European Time)</SelectItem>
-                    <SelectItem value="pst">PST (Pacific Standard Time)</SelectItem>
+                    <SelectItem value="utc">
+                      UTC (Coordinated Universal Time)
+                    </SelectItem>
+                    <SelectItem value="est">
+                      EST (Eastern Standard Time)
+                    </SelectItem>
+                    <SelectItem value="cet">
+                      CET (Central European Time)
+                    </SelectItem>
+                    <SelectItem value="pst">
+                      PST (Pacific Standard Time)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -218,7 +267,9 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">Notifications</h3>
-                <p className="text-sm text-gray-400">Configure how you receive alerts</p>
+                <p className="text-sm text-gray-400">
+                  Configure how you receive alerts
+                </p>
               </div>
             </div>
 
@@ -226,55 +277,84 @@ export function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-white">Email Notifications</Label>
-                  <p className="text-sm text-gray-400">Receive updates via email</p>
+                  <p className="text-sm text-gray-400">
+                    Receive updates via email
+                  </p>
                 </div>
-                <Switch 
-                  checked={notifications.email} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, email: checked})} 
+                <Switch
+                  checked={notifications.email}
+                  onCheckedChange={(checked) =>
+                    setNotifications({ ...notifications, email: checked })
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-white">Push Notifications</Label>
-                  <p className="text-sm text-gray-400">Browser notifications for real-time alerts</p>
+                  <p className="text-sm text-gray-400">
+                    Browser notifications for real-time alerts
+                  </p>
                 </div>
-                <Switch 
-                  checked={notifications.push} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, push: checked})} 
+                <Switch
+                  checked={notifications.push}
+                  onCheckedChange={(checked) =>
+                    setNotifications({ ...notifications, push: checked })
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-white">Fairness Alerts</Label>
-                  <p className="text-sm text-gray-400">Notify when fairness scores drop</p>
+                  <p className="text-sm text-gray-400">
+                    Notify when fairness scores drop
+                  </p>
                 </div>
-                <Switch 
-                  checked={notifications.fairnessAlerts} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, fairnessAlerts: checked})} 
+                <Switch
+                  checked={notifications.fairnessAlerts}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      fairnessAlerts: checked,
+                    })
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-white">Performance Reports</Label>
-                  <p className="text-sm text-gray-400">Weekly performance summaries</p>
+                  <p className="text-sm text-gray-400">
+                    Weekly performance summaries
+                  </p>
                 </div>
-                <Switch 
-                  checked={notifications.performanceReports} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, performanceReports: checked})} 
+                <Switch
+                  checked={notifications.performanceReports}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      performanceReports: checked,
+                    })
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-white">Session Updates</Label>
-                  <p className="text-sm text-gray-400">Player session start/end notifications</p>
+                  <p className="text-sm text-gray-400">
+                    Player session start/end notifications
+                  </p>
                 </div>
-                <Switch 
-                  checked={notifications.sessionUpdates} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, sessionUpdates: checked})} 
+                <Switch
+                  checked={notifications.sessionUpdates}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      sessionUpdates: checked,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -290,14 +370,21 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">Performance Tracking</h3>
-                <p className="text-sm text-gray-400">Configure how performance data is collected</p>
+                <p className="text-sm text-gray-400">
+                  Configure how performance data is collected
+                </p>
               </div>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-white">Tracking Interval (seconds)</Label>
-                <Select value={trackingInterval} onValueChange={setTrackingInterval}>
+                <Label className="text-white">
+                  Tracking Interval (seconds)
+                </Label>
+                <Select
+                  value={trackingInterval}
+                  onValueChange={setTrackingInterval}
+                >
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -305,10 +392,14 @@ export function Settings() {
                     <SelectItem value="1">1 second (High frequency)</SelectItem>
                     <SelectItem value="3">3 seconds (Default)</SelectItem>
                     <SelectItem value="5">5 seconds (Balanced)</SelectItem>
-                    <SelectItem value="10">10 seconds (Low frequency)</SelectItem>
+                    <SelectItem value="10">
+                      10 seconds (Low frequency)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-gray-400">How often to collect performance metrics</p>
+                <p className="text-sm text-gray-400">
+                  How often to collect performance metrics
+                </p>
               </div>
 
               <Separator className="bg-white/10" />
@@ -334,7 +425,9 @@ export function Settings() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch defaultChecked />
-                    <span className="text-sm text-gray-300">Score Tracking</span>
+                    <span className="text-sm text-gray-300">
+                      Score Tracking
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch defaultChecked />
@@ -348,7 +441,9 @@ export function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-white">Auto-Export Reports</Label>
-                  <p className="text-sm text-gray-400">Automatically export weekly reports</p>
+                  <p className="text-sm text-gray-400">
+                    Automatically export weekly reports
+                  </p>
                 </div>
                 <Switch checked={autoExport} onCheckedChange={setAutoExport} />
               </div>
@@ -365,7 +460,9 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">Fairness Thresholds</h3>
-                <p className="text-sm text-gray-400">Set limits for flagging suspicious behavior</p>
+                <p className="text-sm text-gray-400">
+                  Set limits for flagging suspicious behavior
+                </p>
               </div>
             </div>
 
@@ -375,71 +472,96 @@ export function Settings() {
                   <Label className="text-white">Maximum Latency (ms)</Label>
                   <span className="text-primary">{thresholds.latency}ms</span>
                 </div>
-                <Slider 
-                  value={[thresholds.latency]} 
-                  onValueChange={(value) => setThresholds({...thresholds, latency: value[0]})}
+                <Slider
+                  value={[thresholds.latency]}
+                  onValueChange={(value) =>
+                    setThresholds({ ...thresholds, latency: value[0] })
+                  }
                   max={200}
                   min={20}
                   step={5}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">Players exceeding this will be flagged for review</p>
+                <p className="text-sm text-gray-400">
+                  Players exceeding this will be flagged for review
+                </p>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-white">Minimum Fairness Score</Label>
-                  <span className="text-primary">{thresholds.fairnessScore}%</span>
+                  <span className="text-primary">
+                    {thresholds.fairnessScore}%
+                  </span>
                 </div>
-                <Slider 
-                  value={[thresholds.fairnessScore]} 
-                  onValueChange={(value) => setThresholds({...thresholds, fairnessScore: value[0]})}
+                <Slider
+                  value={[thresholds.fairnessScore]}
+                  onValueChange={(value) =>
+                    setThresholds({ ...thresholds, fairnessScore: value[0] })
+                  }
                   max={100}
                   min={50}
                   step={5}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">Scores below this trigger fairness alerts</p>
+                <p className="text-sm text-gray-400">
+                  Scores below this trigger fairness alerts
+                </p>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-white">Minimum Reaction Time (ms)</Label>
-                  <span className="text-primary">{thresholds.reactionTime}ms</span>
+                  <Label className="text-white">
+                    Minimum Reaction Time (ms)
+                  </Label>
+                  <span className="text-primary">
+                    {thresholds.reactionTime}ms
+                  </span>
                 </div>
-                <Slider 
-                  value={[thresholds.reactionTime]} 
-                  onValueChange={(value) => setThresholds({...thresholds, reactionTime: value[0]})}
+                <Slider
+                  value={[thresholds.reactionTime]}
+                  onValueChange={(value) =>
+                    setThresholds({ ...thresholds, reactionTime: value[0] })
+                  }
                   max={300}
                   min={50}
                   step={10}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">Suspiciously fast reactions below this value</p>
+                <p className="text-sm text-gray-400">
+                  Suspiciously fast reactions below this value
+                </p>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-white">Minimum Accuracy (%)</Label>
-                  <span className="text-primary">{thresholds.accuracyMin}%</span>
+                  <span className="text-primary">
+                    {thresholds.accuracyMin}%
+                  </span>
                 </div>
-                <Slider 
-                  value={[thresholds.accuracyMin]} 
-                  onValueChange={(value) => setThresholds({...thresholds, accuracyMin: value[0]})}
+                <Slider
+                  value={[thresholds.accuracyMin]}
+                  onValueChange={(value) =>
+                    setThresholds({ ...thresholds, accuracyMin: value[0] })
+                  }
                   max={100}
                   min={30}
                   step={5}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">Players below this may need additional monitoring</p>
+                <p className="text-sm text-gray-400">
+                  Players below this may need additional monitoring
+                </p>
               </div>
 
               <Separator className="bg-white/10" />
 
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
                 <p className="text-yellow-400 text-sm">
-                  <span className="font-semibold">Note:</span> These thresholds directly impact fairness scoring. 
-                  Adjust carefully to balance accuracy and false positives.
+                  <span className="font-semibold">Note:</span> These thresholds
+                  directly impact fairness scoring. Adjust carefully to balance
+                  accuracy and false positives.
                 </p>
               </div>
             </div>
@@ -455,7 +577,9 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">Data Management</h3>
-                <p className="text-sm text-gray-400">Control your data storage and retention</p>
+                <p className="text-sm text-gray-400">
+                  Control your data storage and retention
+                </p>
               </div>
             </div>
 
@@ -474,7 +598,9 @@ export function Settings() {
                     <SelectItem value="unlimited">Unlimited</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-gray-400">How long to keep session data before automatic deletion</p>
+                <p className="text-sm text-gray-400">
+                  How long to keep session data before automatic deletion
+                </p>
               </div>
 
               <Separator className="bg-white/10" />
@@ -482,14 +608,14 @@ export function Settings() {
               <div className="space-y-4">
                 <Label className="text-white">Export Data</Label>
                 <div className="flex gap-3">
-                  <Button 
+                  <Button
                     onClick={handleExportData}
                     className="bg-white/10 hover:bg-white/20 text-white border border-white/20"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Export All Sessions
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleExportData}
                     className="bg-white/10 hover:bg-white/20 text-white border border-white/20"
                   >
@@ -497,7 +623,9 @@ export function Settings() {
                     Export Analytics
                   </Button>
                 </div>
-                <p className="text-sm text-gray-400">Download your data in CSV or JSON format</p>
+                <p className="text-sm text-gray-400">
+                  Download your data in CSV or JSON format
+                </p>
               </div>
 
               <Separator className="bg-white/10" />
@@ -508,9 +636,10 @@ export function Settings() {
                   <div>
                     <h4 className="text-white mb-2">Delete All Session Data</h4>
                     <p className="text-sm text-gray-400 mb-3">
-                      Permanently remove all stored session data. This action cannot be undone.
+                      Permanently remove all stored session data. This action
+                      cannot be undone.
                     </p>
-                    <Button 
+                    <Button
                       onClick={handleDeleteData}
                       disabled={isDeletingData || isSeedingData}
                       className="bg-red-600 hover:bg-red-700 text-white"
@@ -524,7 +653,9 @@ export function Settings() {
                       className="bg-primary hover:bg-primary/90 text-white"
                     >
                       <Database className="w-4 h-4 mr-2" />
-                      {isSeedingData ? "Seeding..." : "Populate Realistic Dummy Data"}
+                      {isSeedingData
+                        ? "Seeding..."
+                        : "Populate Realistic Dummy Data"}
                     </Button>
                   </div>
                 </div>
@@ -539,7 +670,9 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">API Configuration</h3>
-                <p className="text-sm text-gray-400">Manage API keys and integrations</p>
+                <p className="text-sm text-gray-400">
+                  Manage API keys and integrations
+                </p>
               </div>
             </div>
 
@@ -547,8 +680,8 @@ export function Settings() {
               <div className="space-y-2">
                 <Label className="text-white">API Key</Label>
                 <div className="flex gap-2">
-                  <Input 
-                    type="password" 
+                  <Input
+                    type="password"
                     value="sk_test_4eC39HqLyjWDarjtT1zdp7dc"
                     readOnly
                     className="bg-white/5 border-white/10 text-white"
@@ -557,16 +690,20 @@ export function Settings() {
                     Regenerate
                   </Button>
                 </div>
-                <p className="text-sm text-gray-400">Use this key for API access</p>
+                <p className="text-sm text-gray-400">
+                  Use this key for API access
+                </p>
               </div>
 
               <div className="space-y-2">
                 <Label className="text-white">Webhook URL</Label>
-                <Input 
+                <Input
                   placeholder="https://your-server.com/webhook"
                   className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
                 />
-                <p className="text-sm text-gray-400">Receive real-time fairness alerts</p>
+                <p className="text-sm text-gray-400">
+                  Receive real-time fairness alerts
+                </p>
               </div>
             </div>
           </div>
@@ -581,7 +718,9 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">Profile Information</h3>
-                <p className="text-sm text-gray-400">Update your account details</p>
+                <p className="text-sm text-gray-400">
+                  Update your account details
+                </p>
               </div>
             </div>
 
@@ -589,14 +728,14 @@ export function Settings() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-white">First Name</Label>
-                  <Input 
+                  <Input
                     defaultValue="Admin"
                     className="bg-white/5 border-white/10 text-white"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-white">Last Name</Label>
-                  <Input 
+                  <Input
                     defaultValue="User"
                     className="bg-white/5 border-white/10 text-white"
                   />
@@ -608,7 +747,7 @@ export function Settings() {
                   <Mail className="w-4 h-4" />
                   Email Address
                 </Label>
-                <Input 
+                <Input
                   type="email"
                   defaultValue="admin@fairplay-tracker.com"
                   className="bg-white/5 border-white/10 text-white"
@@ -617,7 +756,7 @@ export function Settings() {
 
               <div className="space-y-2">
                 <Label className="text-white">Organization</Label>
-                <Input 
+                <Input
                   defaultValue="TH OWL"
                   className="bg-white/5 border-white/10 text-white"
                 />
@@ -646,14 +785,16 @@ export function Settings() {
               </div>
               <div>
                 <h3 className="text-white">Security</h3>
-                <p className="text-sm text-gray-400">Manage your password and authentication</p>
+                <p className="text-sm text-gray-400">
+                  Manage your password and authentication
+                </p>
               </div>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
                 <Label className="text-white">Current Password</Label>
-                <Input 
+                <Input
                   type="password"
                   placeholder="Enter current password"
                   className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
@@ -662,7 +803,7 @@ export function Settings() {
 
               <div className="space-y-2">
                 <Label className="text-white">New Password</Label>
-                <Input 
+                <Input
                   type="password"
                   placeholder="Enter new password"
                   className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
@@ -671,7 +812,7 @@ export function Settings() {
 
               <div className="space-y-2">
                 <Label className="text-white">Confirm New Password</Label>
-                <Input 
+                <Input
                   type="password"
                   placeholder="Confirm new password"
                   className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
@@ -686,8 +827,12 @@ export function Settings() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="text-white">Two-Factor Authentication</Label>
-                  <p className="text-sm text-gray-400">Add an extra layer of security</p>
+                  <Label className="text-white">
+                    Two-Factor Authentication
+                  </Label>
+                  <p className="text-sm text-gray-400">
+                    Add an extra layer of security
+                  </p>
                 </div>
                 <Switch />
               </div>
