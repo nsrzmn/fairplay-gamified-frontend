@@ -190,6 +190,7 @@ function App() {
   const gameUrl = normalizeExternalUrl(
     import.meta.env.VITE_GAME_URL as string | undefined,
   );
+  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -313,6 +314,21 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const evaluateViewport = () => {
+      setIsDesktopViewport(window.matchMedia("(min-width: 1024px)").matches);
+    };
+
+    evaluateViewport();
+    window.addEventListener("resize", evaluateViewport);
+    window.addEventListener("orientationchange", evaluateViewport);
+
+    return () => {
+      window.removeEventListener("resize", evaluateViewport);
+      window.removeEventListener("orientationchange", evaluateViewport);
+    };
+  }, []);
+
+  useEffect(() => {
     void loadOverviewAndSessions();
     const interval = setInterval(() => {
       void loadOverviewAndSessions();
@@ -354,13 +370,15 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f2e] via-[#2a2f3e] to-[#3a3f5e]">
-      <Sidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        gameUrl={gameUrl}
-      />
+      {isDesktopViewport ? (
+        <Sidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          gameUrl={gameUrl}
+        />
+      ) : null}
 
-      <div className="lg:ml-20">
+      <div className={`${isDesktopViewport ? "ml-20" : ""} lg:ml-20`}>
         {/* Header */}
         <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1f2e]/95 to-transparent backdrop-blur-sm border-b border-white/5">
           <div className="flex items-center justify-between px-4 py-3 lg:px-8 lg:py-4">
@@ -504,28 +522,30 @@ function App() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#111827]/95 backdrop-blur border-t border-white/10 px-2 py-2">
-        <div className="grid grid-cols-5 gap-2">
-          {mobileTabs.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`rounded-lg py-2 flex flex-col items-center justify-center gap-1 text-[11px] transition-all ${
-                  isActive
-                    ? "bg-primary text-white"
-                    : "bg-white/5 text-gray-300 hover:bg-white/10"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
+      {!isDesktopViewport ? (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#111827]/95 backdrop-blur border-t border-white/10 px-2 py-2">
+          <div className="grid grid-cols-5 gap-2">
+            {mobileTabs.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`rounded-lg py-2 flex flex-col items-center justify-center gap-1 text-[11px] transition-all ${
+                    isActive
+                      ? "bg-primary text-white"
+                      : "bg-white/5 text-gray-300 hover:bg-white/10"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
