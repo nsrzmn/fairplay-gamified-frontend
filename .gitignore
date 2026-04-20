@@ -5,11 +5,13 @@
 
 # build output
 /dist
+/build
 /.vite
 
 # local env files
 .env
 .env.*
+!.env.example
 
 # logs
 npm-debug.log*
