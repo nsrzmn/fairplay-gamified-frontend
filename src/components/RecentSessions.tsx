@@ -3,18 +3,29 @@ import { Badge } from "./ui/badge";
 
 interface RecentSessionsProps {
   sessions: any[];
+  onPlayerClick?: (playerName: string) => void;
 }
 
-export function RecentSessions({ sessions }: RecentSessionsProps) {
+export function RecentSessions({ sessions, onPlayerClick }: RecentSessionsProps) {
   const recentSessions = sessions.slice(0, 2);
 
   return (
     <div className="mb-8">
       <h3 className="text-white mb-4">Recently Active</h3>
+
+      {recentSessions.length === 0 ? (
+        <Card className="p-6 bg-gradient-to-br from-[#2C3E50]/60 to-[#1a1f2e]/60 border-primary/20">
+          <p className="text-sm text-gray-400">No recent sessions available yet.</p>
+        </Card>
+      ) : null}
       
       <div className="grid md:grid-cols-2 gap-6">
         {recentSessions.map((session, index) => (
-          <Card key={session.id} className="relative overflow-hidden bg-gradient-to-br from-[#2C3E50]/60 to-[#1a1f2e]/60 border-primary/20">
+          <Card
+            key={session.id}
+            className="relative overflow-hidden bg-gradient-to-br from-[#2C3E50]/60 to-[#1a1f2e]/60 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors"
+            onClick={() => onPlayerClick?.(session.player)}
+          >
             <div 
               className="absolute inset-0 bg-cover bg-center opacity-20"
               style={{ 

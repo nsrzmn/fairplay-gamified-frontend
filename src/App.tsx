@@ -447,12 +447,22 @@ function App() {
               <div className="grid lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   <FeaturedBanner stats={stats} onNavigate={setActiveTab} />
-                  <RecentSessions sessions={sessions} />
+                  <RecentSessions
+                    sessions={sessions}
+                    onPlayerClick={handlePlayerClick}
+                  />
                 </div>
 
                 <div className="space-y-6">
-                  <QuickStats sessions={sessions} />
-                  <PartyWidget sessions={sessions} />
+                  <QuickStats
+                    sessions={sessions}
+                    onNavigate={setActiveTab}
+                    onPlayerClick={handlePlayerClick}
+                  />
+                  <PartyWidget
+                    sessions={sessions}
+                    onPlayerClick={handlePlayerClick}
+                  />
                 </div>
               </div>
             </div>

@@ -4,23 +4,36 @@ import { Button } from "./ui/button";
 
 interface QuickStatsProps {
   sessions: any[];
+  onNavigate?: (tab: string) => void;
+  onPlayerClick?: (playerName: string) => void;
 }
 
-export function QuickStats({ sessions }: QuickStatsProps) {
+export function QuickStats({ sessions, onNavigate, onPlayerClick }: QuickStatsProps) {
   const activeSessions = sessions.filter(s => s.status === 'active').slice(0, 2);
 
   return (
     <Card className="p-6 bg-gradient-to-br from-[#2C3E50]/80 to-[#1a1f2e]/80 border-primary/20">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white">Active Sessions</h3>
-        <Button variant="link" className="text-primary text-sm p-0 h-auto">
+        <Button
+          variant="link"
+          className="text-primary text-sm p-0 h-auto"
+          onClick={() => onNavigate?.("sessions")}
+        >
           See more
         </Button>
       </div>
       
       <div className="space-y-3">
+        {activeSessions.length === 0 ? (
+          <p className="text-sm text-gray-400">No active sessions right now.</p>
+        ) : null}
         {activeSessions.map((session) => (
-          <div key={session.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20">
+          <div
+            key={session.id}
+            className="flex items-center justify-between p-3 rounded-lg bg-black/20 cursor-pointer hover:bg-black/30 transition-colors"
+            onClick={() => onPlayerClick?.(session.player)}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded bg-gradient-to-br from-primary to-pink-600 flex items-center justify-center">
                 <span className="text-white text-sm">{session.player.slice(0, 2)}</span>
