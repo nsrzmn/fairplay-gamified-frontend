@@ -80,6 +80,10 @@ interface DashboardOverviewResponse {
   avgAccuracy: number;
 }
 
+interface RuntimeSettingsResponse {
+  trackingInterval: number;
+}
+
 interface LatencyChartPoint {
   time: string;
   latency: number;
@@ -226,6 +230,7 @@ function App() {
 
   const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
   const latestAlertTimestamp = useRef<string | null>(null);
+  const [trackingIntervalSeconds, setTrackingIntervalSeconds] = useState(3);
 
   const loadSessionDetails = async (sessionId: string) => {
     try {
@@ -307,6 +312,17 @@ function App() {
     latestAlertTimestamp.current = String(alerts[0].timestamp);
   };
 
+  const loadTrackingInterval = async () => {
+    try {
+      const payload = await apiClient.get<RuntimeSettingsResponse>("/settings");
+      const nextInterval = Number(payload.trackingInterval || 3);
+      const clamped = Math.min(30, Math.max(1, nextInterval));
+      setTrackingIntervalSeconds(clamped);
+    } catch {
+      // Keep previous value if settings endpoint is unavailable.
+    }
+  };
+
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
 
@@ -329,22 +345,31 @@ function App() {
   }, []);
 
   useEffect(() => {
+    void loadTrackingInterval();
+    const settingsInterval = setInterval(() => {
+      void loadTrackingInterval();
+    }, 30000);
+
+    return () => clearInterval(settingsInterval);
+  }, []);
+
+  useEffect(() => {
     void loadOverviewAndSessions();
     const interval = setInterval(() => {
       void loadOverviewAndSessions();
-    }, 10000);
+    }, trackingIntervalSeconds * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [trackingIntervalSeconds]);
 
   useEffect(() => {
     void pollLiveAlerts();
     const interval = setInterval(() => {
       void pollLiveAlerts();
-    }, 3000);
+    }, trackingIntervalSeconds * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [trackingIntervalSeconds]);
 
   const handlePlayerClick = (playerName: string) => {
     setSelectedPlayer(playerName);
