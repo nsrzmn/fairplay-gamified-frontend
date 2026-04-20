@@ -84,14 +84,46 @@ const FAIRNESS_WEIGHT_HINTS: Record<string, string> = {
     "Compares accuracy to the configured minimum baseline. Falling below baseline lowers this metric.",
 };
 
-const PREVIEW_SAMPLE = {
-  reactionStd: 22,
-  reactionTime: 185,
-  latency: 72,
-  emptyClicks: 2,
-  missedTargets: 3,
-  accuracy: 84,
-};
+const PREVIEW_SCENARIOS = {
+  normal: {
+    label: "Balanced Player",
+    reactionStd: 22,
+    reactionTime: 185,
+    latency: 72,
+    emptyClicks: 2,
+    missedTargets: 3,
+    accuracy: 84,
+  },
+  highLatency: {
+    label: "High Latency Player",
+    reactionStd: 24,
+    reactionTime: 205,
+    latency: 138,
+    emptyClicks: 2,
+    missedTargets: 4,
+    accuracy: 82,
+  },
+  suspiciousFast: {
+    label: "Suspiciously Fast",
+    reactionStd: 8,
+    reactionTime: 78,
+    latency: 34,
+    emptyClicks: 0,
+    missedTargets: 0,
+    accuracy: 99,
+  },
+  lowFocus: {
+    label: "Low Focus / Misses",
+    reactionStd: 28,
+    reactionTime: 245,
+    latency: 66,
+    emptyClicks: 7,
+    missedTargets: 11,
+    accuracy: 58,
+  },
+} as const;
+
+type PreviewScenarioKey = keyof typeof PREVIEW_SCENARIOS;
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
@@ -116,6 +148,8 @@ export function Settings() {
   const [isDeletingData, setIsDeletingData] = useState(false);
   const [isSeedingData, setIsSeedingData] = useState(false);
   const [isRecomputingFairness, setIsRecomputingFairness] = useState(false);
+  const [previewScenario, setPreviewScenario] =
+    useState<PreviewScenarioKey>("normal");
   const [fairnessWeights, setFairnessWeights] = useState<Record<string, number>>(
     {
       "Input Timing Consistency": 25,
@@ -244,6 +278,8 @@ export function Settings() {
     }));
   };
 
+  const previewSample = PREVIEW_SCENARIOS[previewScenario];
+
   const normalizedPreviewWeights = (() => {
     const raw = FAIRNESS_WEIGHT_LABELS.map((label) =>
       Math.max(0, Number(fairnessWeights[label] ?? 0)),
@@ -263,28 +299,28 @@ export function Settings() {
   })();
 
   const previewMetricScores = (() => {
-    const inputTiming = Math.round(clamp(((PREVIEW_SAMPLE.reactionStd - 10) / 30) * 100, 0, 100));
+    const inputTiming = Math.round(clamp(((previewSample.reactionStd - 10) / 30) * 100, 0, 100));
     const responsePattern =
-      PREVIEW_SAMPLE.reactionTime >= thresholds.reactionTime
+      previewSample.reactionTime >= thresholds.reactionTime
         ? 100
         : Math.round(
             clamp(
-              (PREVIEW_SAMPLE.reactionTime / Math.max(1, thresholds.reactionTime)) * 100,
+              (previewSample.reactionTime / Math.max(1, thresholds.reactionTime)) * 100,
               0,
               100,
             ),
           );
     const networkLatency = Math.round(
-      clamp(100 - Math.max(0, PREVIEW_SAMPLE.latency - thresholds.latency) * 0.8, 0, 100),
+      clamp(100 - Math.max(0, previewSample.latency - thresholds.latency) * 0.8, 0, 100),
     );
-    const emptyClickBehavior = Math.round(clamp(100 - PREVIEW_SAMPLE.emptyClicks * 12, 0, 100));
-    const focusMissed = Math.round(clamp(100 - PREVIEW_SAMPLE.missedTargets * 10, 0, 100));
+    const emptyClickBehavior = Math.round(clamp(100 - previewSample.emptyClicks * 12, 0, 100));
+    const focusMissed = Math.round(clamp(100 - previewSample.missedTargets * 10, 0, 100));
     const accuracyBaseline =
-      PREVIEW_SAMPLE.accuracy >= thresholds.accuracyMin
+      previewSample.accuracy >= thresholds.accuracyMin
         ? 100
         : Math.round(
             clamp(
-              (PREVIEW_SAMPLE.accuracy / Math.max(1, thresholds.accuracyMin)) * 100,
+              (previewSample.accuracy / Math.max(1, thresholds.accuracyMin)) * 100,
               0,
               100,
             ),
@@ -588,8 +624,29 @@ export function Settings() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label className="text-white text-sm">Preview Scenario</Label>
+                  <Select
+                    value={previewScenario}
+                    onValueChange={(value) =>
+                      setPreviewScenario(value as PreviewScenarioKey)
+                    }
+                  >
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                      <SelectValue placeholder="Select preview scenario" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(PREVIEW_SCENARIOS).map(([key, scenario]) => (
+                        <SelectItem key={key} value={key}>
+                          {scenario.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="text-xs text-gray-400">
-                  Sample inputs: reactionStd {PREVIEW_SAMPLE.reactionStd}ms, reactionTime {PREVIEW_SAMPLE.reactionTime}ms, latency {PREVIEW_SAMPLE.latency}ms, emptyClicks {PREVIEW_SAMPLE.emptyClicks}, missedTargets {PREVIEW_SAMPLE.missedTargets}, accuracy {PREVIEW_SAMPLE.accuracy}%
+                  Sample inputs: reactionStd {previewSample.reactionStd}ms, reactionTime {previewSample.reactionTime}ms, latency {previewSample.latency}ms, emptyClicks {previewSample.emptyClicks}, missedTargets {previewSample.missedTargets}, accuracy {previewSample.accuracy}%
                 </div>
 
                 <div className="space-y-2">
