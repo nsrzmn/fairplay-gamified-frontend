@@ -75,7 +75,7 @@ export function PlayerSessionsTable({ sessions, onPlayerClick }: PlayerSessionsT
         <h3 className="text-white">Live Player Sessions</h3>
         <Badge variant="outline" className="border-primary text-primary">{sessions.filter(s => s.status === 'active').length} Active</Badge>
       </div>
-      <div>
+      <div className="overflow-x-auto">
         <Table className="overflow-visible">
           <TableHeader>
             <TableRow>

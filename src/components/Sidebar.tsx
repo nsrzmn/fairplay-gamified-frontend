@@ -1,7 +1,4 @@
-import image_ed560c90b4836a9f11ce907c23fc97834fd6ae09 from 'figma:asset/ed560c90b4836a9f11ce907c23fc97834fd6ae09.png';
-import image_5bd2479fa239b975271f4c03f6de2bf4ba04e81a from 'figma:asset/5bd2479fa239b975271f4c03f6de2bf4ba04e81a.png';
 import { Home, Users, BarChart3, Radio, Settings, Download, Gamepad2 } from "lucide-react";
-import logo from "../assets/fairplay-logo.png";
 import Logo from "../imports/Logo";
 
 interface SidebarProps {
@@ -19,7 +16,7 @@ export function Sidebar({ activeTab, onTabChange, gameUrl }: SidebarProps) {
   ];
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-20 bg-gradient-to-b from-[#1a1f2e] to-[#2C3E50] flex flex-col items-center py-6 gap-6 z-50">
+    <div className="fixed left-0 top-0 hidden h-screen w-20 bg-gradient-to-b from-[#1a1f2e] to-[#2C3E50] md:flex flex-col items-center py-6 gap-6 z-50">
       <div className="w-14 h-14 rounded-lg bg-white/10 flex items-center justify-center mb-4 p-2">
         <Logo className="w-full h-full object-contain" />
       </div>

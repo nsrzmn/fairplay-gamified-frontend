@@ -24,6 +24,7 @@ interface SettingsPayload {
   trackingInterval: number;
   dataRetention: number;
   notifications: Record<string, boolean>;
+  fairnessWeights: Record<string, number>;
 }
 
 interface DataActionResponse {
@@ -33,6 +34,23 @@ interface DataActionResponse {
   sessions: number;
   alerts: number;
 }
+
+interface RecomputeFairnessResponse {
+  ok: boolean;
+  message: string;
+  updatedSessions: number;
+  flaggedSessions: number;
+  completedSessions: number;
+}
+
+const FAIRNESS_WEIGHT_LABELS = [
+  "Input Timing Consistency",
+  "Response Pattern Analysis",
+  "Network Latency Stability",
+  "Empty Click Behavior",
+  "Focus / Missed Targets",
+  "Accuracy Baseline",
+] as const;
 
 export function Settings() {
   const [notifications, setNotifications] = useState({
@@ -54,6 +72,17 @@ export function Settings() {
   const [trackingInterval, setTrackingInterval] = useState("3");
   const [isDeletingData, setIsDeletingData] = useState(false);
   const [isSeedingData, setIsSeedingData] = useState(false);
+  const [isRecomputingFairness, setIsRecomputingFairness] = useState(false);
+  const [fairnessWeights, setFairnessWeights] = useState<Record<string, number>>(
+    {
+      "Input Timing Consistency": 25,
+      "Response Pattern Analysis": 20,
+      "Network Latency Stability": 15,
+      "Empty Click Behavior": 15,
+      "Focus / Missed Targets": 10,
+      "Accuracy Baseline": 15,
+    },
+  );
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -70,6 +99,10 @@ export function Settings() {
         setNotifications((prev) => ({
           ...prev,
           ...(payload.notifications || {}),
+        }));
+        setFairnessWeights((prev) => ({
+          ...prev,
+          ...(payload.fairnessWeights || {}),
         }));
       } catch {
         toast.error("Unable to load settings from backend.");
@@ -96,6 +129,7 @@ export function Settings() {
         trackingInterval: intervalSeconds,
         dataRetention: retentionDays,
         notifications,
+        fairnessWeights,
       });
 
       toast.success("Settings saved successfully!");
@@ -136,6 +170,35 @@ export function Settings() {
       })
       .catch(() => toast.error("Failed to seed realistic dummy data."))
       .finally(() => setIsSeedingData(false));
+  };
+
+  const handleRecomputeFairness = () => {
+    setIsRecomputingFairness(true);
+    apiClient
+      .post<RecomputeFairnessResponse>("/settings/data/recompute-fairness", {})
+      .then((res) => {
+        if (res.ok) {
+          toast.success(
+            `${res.message} Updated: ${res.updatedSessions}, Flagged: ${res.flaggedSessions}, Completed: ${res.completedSessions}`,
+          );
+        } else {
+          toast.error("Historical fairness recompute failed.");
+        }
+      })
+      .catch(() => toast.error("Failed to recompute historical fairness."))
+      .finally(() => setIsRecomputingFairness(false));
+  };
+
+  const fairnessWeightTotal = FAIRNESS_WEIGHT_LABELS.reduce(
+    (sum, label) => sum + (fairnessWeights[label] ?? 0),
+    0,
+  );
+
+  const updateWeight = (label: string, value: number) => {
+    setFairnessWeights((prev) => ({
+      ...prev,
+      [label]: value,
+    }));
   };
 
   return (
@@ -319,6 +382,37 @@ export function Settings() {
 
               <Separator className="bg-white/10" />
 
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-white">Fairness Metric Weights</h4>
+                  <span className="text-sm text-gray-300">
+                    Total: {fairnessWeightTotal}%
+                  </span>
+                </div>
+                <p className="text-sm text-gray-400">
+                  Control each metric contribution to overall fairness. Values are normalized to 100% on save.
+                </p>
+
+                {FAIRNESS_WEIGHT_LABELS.map((label) => (
+                  <div key={label} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-white text-sm">{label}</Label>
+                      <span className="text-primary text-sm">
+                        {fairnessWeights[label] ?? 0}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[fairnessWeights[label] ?? 0]}
+                      onValueChange={(value) => updateWeight(label, value[0])}
+                      max={50}
+                      min={0}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                ))}
+              </div>
+
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
                 <p className="text-yellow-400 text-sm">
                   <span className="font-semibold">Note:</span> These thresholds
@@ -379,7 +473,9 @@ export function Settings() {
                     <div className="flex flex-col gap-3">
                       <Button
                         onClick={handleDeleteData}
-                        disabled={isDeletingData || isSeedingData}
+                        disabled={
+                          isDeletingData || isSeedingData || isRecomputingFairness
+                        }
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
@@ -387,13 +483,27 @@ export function Settings() {
                       </Button>
                       <Button
                         onClick={handleSeedData}
-                        disabled={isDeletingData || isSeedingData}
+                        disabled={
+                          isDeletingData || isSeedingData || isRecomputingFairness
+                        }
                         className="bg-primary hover:bg-primary/90 text-white"
                       >
                         <Database className="w-4 h-4 mr-2" />
                         {isSeedingData
                           ? "Seeding..."
                           : "Populate Realistic Dummy Data"}
+                      </Button>
+                      <Button
+                        onClick={handleRecomputeFairness}
+                        disabled={
+                          isDeletingData || isSeedingData || isRecomputingFairness
+                        }
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        {isRecomputingFairness
+                          ? "Recomputing..."
+                          : "Recompute Historical Fairness"}
                       </Button>
                     </div>
                   </div>

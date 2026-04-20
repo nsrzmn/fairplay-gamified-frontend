@@ -13,7 +13,7 @@ import { CorePerformanceStats } from "./components/CorePerformanceStats";
 import { Settings } from "./components/Settings";
 import { NotificationPanel } from "./components/NotificationPanel";
 import { PlayerAnalytics } from "./components/PlayerAnalytics";
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, Home, Users, BarChart3, Radio, Settings as SettingsIcon } from "lucide-react";
 import { Input } from "./components/ui/input";
 import { Avatar, AvatarFallback } from "./components/ui/avatar";
 import {
@@ -344,6 +344,14 @@ function App() {
     setActiveTab("sessions");
   };
 
+  const mobileTabs = [
+    { id: "home", label: "Home", icon: Home },
+    { id: "sessions", label: "Sessions", icon: Users },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "live", label: "Live", icon: Radio },
+    { id: "settings", label: "Settings", icon: SettingsIcon },
+  ] as const;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f2e] via-[#2a2f3e] to-[#3a3f5e]">
       <Sidebar
@@ -352,11 +360,11 @@ function App() {
         gameUrl={gameUrl}
       />
 
-      <div className="ml-20">
+      <div className="md:ml-20">
         {/* Header */}
         <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1f2e]/95 to-transparent backdrop-blur-sm border-b border-white/5">
-          <div className="flex items-center justify-between px-8 py-4">
-            <div className="flex-1 max-w-md relative">
+          <div className="flex items-center justify-between px-4 py-3 md:px-8 md:py-4">
+            <div className="flex-1 max-w-xs md:max-w-md relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 placeholder="Search sessions, players..."
@@ -382,10 +390,33 @@ function App() {
               </Avatar>
             </div>
           </div>
+
+          <div className="md:hidden px-3 pb-3">
+            <div className="grid grid-cols-5 gap-2">
+              {mobileTabs.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`rounded-lg py-2 flex flex-col items-center justify-center gap-1 text-xs transition-all ${
+                      isActive
+                        ? "bg-primary text-white"
+                        : "bg-white/5 text-gray-300 hover:bg-white/10"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Main Content */}
-        <div className="p-8">
+        <div className="p-4 pb-20 md:p-8 md:pb-8">
           {activeTab === "home" && (
             <div className="space-y-6">
               <CorePerformanceStats
@@ -493,6 +524,22 @@ function App() {
               />
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#111827]/95 backdrop-blur border-t border-white/10 px-3 py-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-300">FairPlay Dashboard</span>
+          {gameUrl ? (
+            <a
+              href={gameUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs bg-primary text-white px-3 py-1.5 rounded-md"
+            >
+              Play Game
+            </a>
+          ) : null}
         </div>
       </div>
     </div>

@@ -44,4 +44,13 @@
   - Do not set `VITE_API_URL` on Railway unless you intentionally want browser-direct calls.
   - Set `VITE_GAME_URL` only to a public URL because it is exposed to the browser bundle.
   - For local dev, Vite proxies `/api` to `http://localhost:8000` by default.
+
+  ## Settings and Responsiveness
+
+  - The Settings page supports fairness threshold tuning and per-metric fairness weights.
+  - The Data tab includes a `Recompute Historical Fairness` action to apply current weights to previous sessions.
+  - Mobile optimization includes:
+    - responsive spacing/layout updates,
+    - mobile tab navigation,
+    - horizontal overflow handling for wide tables.
   
