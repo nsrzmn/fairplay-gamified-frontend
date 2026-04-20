@@ -112,8 +112,28 @@ function normalizeSession(row: any): SessionRow {
   };
 }
 
+function normalizeExternalUrl(rawValue?: string): string | undefined {
+  const trimmed = rawValue?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Treat host-only values like fairplay-gamified-game.up.railway.app as HTTPS URLs.
+  if (/^[\w.-]+(:\d+)?(\/.*)?$/.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+
+  return undefined;
+}
+
 function App() {
-  const gameUrl = (import.meta.env.VITE_GAME_URL as string | undefined)?.trim();
+  const gameUrl = normalizeExternalUrl(
+    import.meta.env.VITE_GAME_URL as string | undefined,
+  );
   const [activeTab, setActiveTab] = useState("home");
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
