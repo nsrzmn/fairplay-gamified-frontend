@@ -1,4 +1,4 @@
-import { Home, Users, BarChart3, Radio, Settings, Download, Gamepad2 } from "lucide-react";
+import { Home, Users, BarChart3, Radio, Settings, Download, Gamepad2, Trophy } from "lucide-react";
 import Logo from "../imports/Logo";
 
 interface SidebarProps {
@@ -12,6 +12,7 @@ export function Sidebar({ activeTab, onTabChange, gameUrl }: SidebarProps) {
     { id: 'home', icon: Home, label: 'Home' },
     { id: 'sessions', icon: Users, label: 'Sessions' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+    { id: 'leaderboard', icon: Trophy, label: 'Leaderboard' },
     { id: 'live', icon: Radio, label: 'Live' },
   ];
 

@@ -13,7 +13,8 @@ import { CorePerformanceStats } from "./components/CorePerformanceStats";
 import { Settings } from "./components/Settings";
 import { NotificationPanel } from "./components/NotificationPanel";
 import { PlayerAnalytics } from "./components/PlayerAnalytics";
-import { Search, Bell, Home, Users, BarChart3, Radio, Settings as SettingsIcon } from "lucide-react";
+import { Leaderboard } from "./components/Leaderboard";
+import { Search, Bell, Home, Users, BarChart3, Radio, Settings as SettingsIcon, Trophy } from "lucide-react";
 import { Input } from "./components/ui/input";
 import { Avatar, AvatarFallback } from "./components/ui/avatar";
 import {
@@ -389,6 +390,7 @@ function App() {
     { id: "home", label: "Home", icon: Home },
     { id: "sessions", label: "Sessions", icon: Users },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "leaderboard", label: "Leaderboard", icon: Trophy },
     { id: "live", label: "Live", icon: Radio },
     { id: "settings", label: "Settings", icon: SettingsIcon },
   ] as const;
@@ -535,6 +537,12 @@ function App() {
                   <PartyWidget sessions={sessions} />
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "leaderboard" && (
+            <div className="space-y-6">
+              <Leaderboard />
             </div>
           )}
 
