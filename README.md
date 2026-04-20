@@ -49,6 +49,8 @@
 
   - The Settings page supports fairness threshold tuning and per-metric fairness weights.
   - The Data tab includes a `Recompute Historical Fairness` action to apply current weights to previous sessions.
+  - The Monitoring tab Tracking Interval now actively controls dashboard polling cadence for overview, sessions, and live alerts.
+  - The frontend refreshes runtime settings periodically, so interval changes apply without reloading the page.
   - Mobile optimization includes:
     - responsive spacing/layout updates,
     - mobile tab navigation,
