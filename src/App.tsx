@@ -113,6 +113,7 @@ function normalizeSession(row: any): SessionRow {
 }
 
 function App() {
+  const gameUrl = (import.meta.env.VITE_GAME_URL as string | undefined)?.trim();
   const [activeTab, setActiveTab] = useState("home");
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -301,7 +302,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f2e] via-[#2a2f3e] to-[#3a3f5e]">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        gameUrl={gameUrl}
+      />
 
       <div className="ml-20">
         {/* Header */}

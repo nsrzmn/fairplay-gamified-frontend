@@ -1,15 +1,16 @@
 import image_ed560c90b4836a9f11ce907c23fc97834fd6ae09 from 'figma:asset/ed560c90b4836a9f11ce907c23fc97834fd6ae09.png';
 import image_5bd2479fa239b975271f4c03f6de2bf4ba04e81a from 'figma:asset/5bd2479fa239b975271f4c03f6de2bf4ba04e81a.png';
-import { Home, Users, BarChart3, Radio, Settings, Download } from "lucide-react";
+import { Home, Users, BarChart3, Radio, Settings, Download, Gamepad2 } from "lucide-react";
 import logo from "../assets/fairplay-logo.png";
 import Logo from "../imports/Logo";
 
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  gameUrl?: string;
 }
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export function Sidebar({ activeTab, onTabChange, gameUrl }: SidebarProps) {
   const navItems = [
     { id: 'home', icon: Home, label: 'Home' },
     { id: 'sessions', icon: Users, label: 'Sessions' },
@@ -41,6 +42,17 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       </div>
 
       <div className="flex flex-col gap-4">
+        {gameUrl ? (
+          <a
+            href={gameUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="w-12 h-12 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            title="Play Game"
+          >
+            <Gamepad2 className="w-6 h-6" />
+          </a>
+        ) : null}
         <button className="w-12 h-12 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
           <Download className="w-6 h-6" />
         </button>

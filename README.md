@@ -31,8 +31,17 @@
   BACKEND_INTERNAL_URL=http://fairplay-gamified-backend.railway.internal
   ```
 
+  ### Optional Railway variable
+
+  ```bash
+  VITE_GAME_URL=https://fairplay-gamified-game-production.up.railway.app
+  ```
+
+  When `VITE_GAME_URL` is set, the sidebar shows a `Play Game` button that opens the hosted game in a new tab.
+
   Notes:
   - Keep frontend API calls on `/api` (already configured in `src/services/api.ts`).
   - Do not set `VITE_API_URL` on Railway unless you intentionally want browser-direct calls.
+  - Set `VITE_GAME_URL` only to a public URL because it is exposed to the browser bundle.
   - For local dev, Vite proxies `/api` to `http://localhost:8000` by default.
   
