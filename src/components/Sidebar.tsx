@@ -16,7 +16,7 @@ export function Sidebar({ activeTab, onTabChange, gameUrl }: SidebarProps) {
   ];
 
   return (
-    <div className="fixed left-0 top-0 hidden h-screen w-20 bg-gradient-to-b from-[#1a1f2e] to-[#2C3E50] md:flex flex-col items-center py-6 gap-6 z-50">
+    <div className="fixed left-0 top-0 hidden h-screen w-20 bg-gradient-to-b from-[#1a1f2e] to-[#2C3E50] lg:flex flex-col items-center py-6 gap-6 z-50">
       <div className="w-14 h-14 rounded-lg bg-white/10 flex items-center justify-center mb-4 p-2">
         <Logo className="w-full h-full object-contain" />
       </div>

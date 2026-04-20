@@ -360,11 +360,11 @@ function App() {
         gameUrl={gameUrl}
       />
 
-      <div className="md:ml-20">
+      <div className="lg:ml-20">
         {/* Header */}
         <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1f2e]/95 to-transparent backdrop-blur-sm border-b border-white/5">
-          <div className="flex items-center justify-between px-4 py-3 md:px-8 md:py-4">
-            <div className="flex-1 max-w-xs md:max-w-md relative">
+          <div className="flex items-center justify-between px-4 py-3 lg:px-8 lg:py-4">
+            <div className="flex-1 max-w-xs lg:max-w-md relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 placeholder="Search sessions, players..."
@@ -390,33 +390,10 @@ function App() {
               </Avatar>
             </div>
           </div>
-
-          <div className="md:hidden px-3 pb-3">
-            <div className="grid grid-cols-5 gap-2">
-              {mobileTabs.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`rounded-lg py-2 flex flex-col items-center justify-center gap-1 text-xs transition-all ${
-                      isActive
-                        ? "bg-primary text-white"
-                        : "bg-white/5 text-gray-300 hover:bg-white/10"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
         {/* Main Content */}
-        <div className="p-4 pb-20 md:p-8 md:pb-8">
+        <div className="p-4 pb-20 lg:p-8 lg:pb-8">
           {activeTab === "home" && (
             <div className="space-y-6">
               <CorePerformanceStats
@@ -527,19 +504,26 @@ function App() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#111827]/95 backdrop-blur border-t border-white/10 px-3 py-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-300">FairPlay Dashboard</span>
-          {gameUrl ? (
-            <a
-              href={gameUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs bg-primary text-white px-3 py-1.5 rounded-md"
-            >
-              Play Game
-            </a>
-          ) : null}
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#111827]/95 backdrop-blur border-t border-white/10 px-2 py-2">
+        <div className="grid grid-cols-5 gap-2">
+          {mobileTabs.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`rounded-lg py-2 flex flex-col items-center justify-center gap-1 text-[11px] transition-all ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-white/5 text-gray-300 hover:bg-white/10"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
