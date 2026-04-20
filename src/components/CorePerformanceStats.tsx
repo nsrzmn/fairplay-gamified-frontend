@@ -100,7 +100,7 @@ export function CorePerformanceStats({ stats, previousStats }: CorePerformanceSt
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white">Core Performance Stats</h3>
-        <span className="text-gray-400 text-sm">60-second round</span>
+        <span className="text-gray-400 text-sm">30-second round</span>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

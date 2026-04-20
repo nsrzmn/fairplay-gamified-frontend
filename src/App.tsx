@@ -80,6 +80,23 @@ interface DashboardOverviewResponse {
   avgAccuracy: number;
 }
 
+interface LatencyChartPoint {
+  time: string;
+  latency: number;
+  threshold: number;
+}
+
+interface AccuracyChartPoint {
+  time: string;
+  accuracy: number;
+}
+
+interface ScoreDistributionPoint {
+  player: string;
+  score: number;
+  avgScore: number;
+}
+
 function formatStartTime(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
@@ -130,6 +147,45 @@ function normalizeExternalUrl(rawValue?: string): string | undefined {
   return undefined;
 }
 
+function buildLatencyChartData(sessions: SessionRow[]): LatencyChartPoint[] {
+  const recent = [...sessions].slice(0, 5).reverse();
+  return recent.map((session) => ({
+    time: session.startTime,
+    latency: Number(session.latency || 0),
+    threshold: 50,
+  }));
+}
+
+function buildAccuracyChartData(sessions: SessionRow[]): AccuracyChartPoint[] {
+  const recent = [...sessions].slice(0, 5).reverse();
+  return recent.map((session) => ({
+    time: session.startTime,
+    accuracy: Number(session.accuracy || 0),
+  }));
+}
+
+function buildScoreDistributionData(sessions: SessionRow[]): ScoreDistributionPoint[] {
+  const totals = new Map<string, { total: number; count: number; latest: number }>();
+
+  for (const session of sessions) {
+    const existing = totals.get(session.player) || { total: 0, count: 0, latest: 0 };
+    existing.total += Number(session.score || 0);
+    existing.count += 1;
+    if (existing.count === 1) {
+      existing.latest = Number(session.score || 0);
+    }
+    totals.set(session.player, existing);
+  }
+
+  return Array.from(totals.entries())
+    .map(([player, values]) => ({
+      player,
+      score: values.latest,
+      avgScore: Number((values.total / values.count).toFixed(1)),
+    }))
+    .slice(0, 8);
+}
+
 function App() {
   const gameUrl = normalizeExternalUrl(
     import.meta.env.VITE_GAME_URL as string | undefined,
@@ -158,35 +214,10 @@ function App() {
     CoreStats | undefined
   >(undefined);
 
-  // Mock data for charts
-  const [latencyData, setLatencyData] = useState([
-    { time: "10:00", latency: 42, threshold: 50 },
-    { time: "10:15", latency: 45, threshold: 50 },
-    { time: "10:30", latency: 38, threshold: 50 },
-    { time: "10:45", latency: 51, threshold: 50 },
-    { time: "11:00", latency: 43, threshold: 50 },
-    { time: "11:15", latency: 47, threshold: 50 },
-    { time: "11:30", latency: 44, threshold: 50 },
-  ]);
-
-  const [accuracyData, setAccuracyData] = useState([
-    { time: "10:00", accuracy: 85 },
-    { time: "10:15", accuracy: 88 },
-    { time: "10:30", accuracy: 86 },
-    { time: "10:45", accuracy: 90 },
-    { time: "11:00", accuracy: 87 },
-    { time: "11:15", accuracy: 89 },
-    { time: "11:30", accuracy: 91 },
-  ]);
-
-  const scoreDistribution = [
-    { player: "Player1", score: 8500, avgScore: 7500 },
-    { player: "Player2", score: 7200, avgScore: 7500 },
-    { player: "Player3", score: 9100, avgScore: 7500 },
-    { player: "Player4", score: 6800, avgScore: 7500 },
-    { player: "Player5", score: 7900, avgScore: 7500 },
-    { player: "Player6", score: 8200, avgScore: 7500 },
-  ];
+  const [latencyData, setLatencyData] = useState<LatencyChartPoint[]>([]);
+  const [accuracyData, setAccuracyData] = useState<AccuracyChartPoint[]>([]);
+  const [scoreDistribution, setScoreDistribution] =
+    useState<ScoreDistributionPoint[]>([]);
 
   const [sessions, setSessions] = useState<SessionRow[]>([]);
 
@@ -229,26 +260,19 @@ function App() {
       setStats(overview);
       const normalizedSessions = sessionsResponse.map(normalizeSession);
       setSessions(normalizedSessions);
+      setLatencyData(buildLatencyChartData(normalizedSessions));
+      setAccuracyData(buildAccuracyChartData(normalizedSessions));
+      setScoreDistribution(buildScoreDistributionData(normalizedSessions));
 
       if (normalizedSessions.length > 0) {
         await loadSessionDetails(normalizedSessions[0].id);
       }
-
-      setLatencyData((prev) =>
-        prev.map((row) => ({
-          ...row,
-          latency: overview.avgLatency || row.latency,
-        })),
-      );
-      setAccuracyData((prev) =>
-        prev.map((row) => ({
-          ...row,
-          accuracy: Number(overview.avgAccuracy) || row.accuracy,
-        })),
-      );
     } catch {
       // Keep UI responsive even when backend is not available.
       setSessions([]);
+      setLatencyData([]);
+      setAccuracyData([]);
+      setScoreDistribution([]);
     }
   };
 
